@@ -20,12 +20,11 @@ from isar.models.communication.message import StartMissionMessage
 from isar.models.communication.queues.queues import Queues
 from isar.state_machine.states import (
     Idle,
-    Initialize,
-    Initiate,
+    Disconnected,
+    Stuck,
     Monitor,
     Off,
     Paused,
-    Stop,
 )
 from isar.state_machine.states_enum import States
 from robot_interface.models.exceptions.robot_exceptions import ErrorMessage
@@ -81,21 +80,19 @@ class StateMachine(object):
         self.stepwise_mission: bool = stepwise_mission
 
         # List of states
-        self.stop_state: State = Stop(self)
         self.paused_state: State = Paused(self)
         self.idle_state: State = Idle(self)
-        self.initialize_state: State = Initialize(self)
         self.monitor_state: State = Monitor(self)
-        self.initiate_state: State = Initiate(self)
+        self.disconnected_state: State = Disconnected(self)
+        self.stuck_state: State = Stuck(self)
         self.off_state: State = Off(self)
 
         self.states: List[State] = [
             self.off_state,
             self.idle_state,
-            self.initialize_state,
-            self.initiate_state,
+            self.disconnected_state,
+            self.stuck_state,
             self.monitor_state,
-            self.stop_state,
             self.paused_state,
         ]
 
@@ -106,93 +103,89 @@ class StateMachine(object):
                     "trigger": "start_machine",
                     "source": self.off_state,
                     "dest": self.idle_state,
-                    "before": self._off,
+                    "before": self._turn_on,
                 },
                 {
-                    "trigger": "initiated",
-                    "source": self.initiate_state,
+                    "trigger": "mission_received",
+                    "source": self.idle_state,
                     "dest": self.monitor_state,
-                    "before": self._initiated,
+                    "before": self._start_mission,
                 },
                 {
                     "trigger": "pause",
-                    "source": [self.initiate_state, self.monitor_state],
-                    "dest": self.stop_state,
+                    "source": self.monitor_state,
+                    "dest": self.paused_state,
                     "before": self._pause,
                 },
                 {
                     "trigger": "stop",
-                    "source": [self.initiate_state, self.monitor_state],
-                    "dest": self.stop_state,
+                    "source": [self.paused_state, self.monitor_state],
+                    "dest": self.idle_state,
                     "before": self._stop,
                 },
                 {
-                    "trigger": "mission_finished",
-                    "source": [
-                        self.initiate_state,
-                    ],
+                    "trigger": "mission_failed",
+                    "source": self.monitor_state,
                     "dest": self.idle_state,
-                    "before": self._mission_finished,
-                },
-                {
-                    "trigger": "mission_started",
-                    "source": self.idle_state,
-                    "dest": self.initialize_state,
-                    "before": self._mission_started,
-                },
-                {
-                    "trigger": "initialization_successful",
-                    "source": self.initialize_state,
-                    "dest": self.initiate_state,
-                    "before": self._initialization_successful,
-                },
-                {
-                    "trigger": "initialization_failed",
-                    "source": self.initialize_state,
-                    "dest": self.idle_state,
-                    "before": self._initialization_failed,
+                    "before": self._cancel_mission,
                 },
                 {
                     "trigger": "resume",
                     "source": self.paused_state,
-                    "dest": self.initiate_state,
+                    "dest": self.monitor_state,
                     "before": self._resume,
                 },
-                {
-                    "trigger": "step_finished",
+                { # TODO: investigate exit action to report steps
+                    "trigger": "last_task_finished",
                     "source": self.monitor_state,
-                    "dest": self.initiate_state,
-                    "before": self._step_finished,
+                    "dest": self.idle_state,
+                    "before": self._report_mission_completed,
                 },
-                {
-                    "trigger": "full_mission_finished",
+                { # TODO: investigate exit action to report steps
+                    "trigger": "task_finished",
                     "source": self.monitor_state,
-                    "dest": self.initiate_state,
-                    "before": self._full_mission_finished,
+                    "dest": self.monitor_state,
+                    "before": self._start_next_task,
                 },
                 {
-                    "trigger": "mission_paused",
-                    "source": self.stop_state,
-                    "dest": self.paused_state,
-                    "before": self._mission_paused,
-                },
-                {
-                    "trigger": "initiate_infeasible",
-                    "source": self.initiate_state,
-                    "dest": self.initiate_state,
-                    "before": self._initiate_infeasible,
-                },
-                {
-                    "trigger": "initiate_failed",
-                    "source": self.initiate_state,
+                    "trigger": "mission_finished",
+                    "source": self.monitor_state,
                     "dest": self.idle_state,
-                    "before": self._initiate_failed,
+                    "before": self._report_mission_completed,
                 },
                 {
-                    "trigger": "mission_stopped",
-                    "source": [self.stop_state, self.paused_state],
+                    "trigger": "task_failed",
+                    "source": self.monitor_state,
+                    "dest": self.monitor_state,
+                    "before": self._start_next_task,
+                },
+                { # TODO: investigate conditional transitions
+                    "trigger": "last_task_failed",
+                    "source": self.monitor_state,
                     "dest": self.idle_state,
-                    "before": self._mission_stopped,
+                    "before": self._report_mission_completed,
+                },
+                {
+                    "trigger": "disconnected",
+                    "source": [self.monitor_state, self.paused_state, self.idle_state],
+                    "dest": self.disconnected_state,
+                    "before": self._report_disconnected_robot,
+                },
+                {
+                    "trigger": "reconnected",
+                    "source": self.disconnected_state,
+                    "dest": self.idle_state,
+                },
+                {
+                    "trigger": "robot_stuck",
+                    "source": self.monitor_state,
+                    "dest": self.stuck_state,
+                    "before": self._report_robot_stuck,
+                },
+                {
+                    "trigger": "robot_reported_ready",
+                    "source": self.stuck_state,
+                    "dest": self.idle_state,
                 },
             ]
         )
