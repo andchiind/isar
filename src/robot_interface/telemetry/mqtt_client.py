@@ -58,7 +58,7 @@ class MqttTelemetryPublisher(Thread):
                 payload_dict = json.loads(payload_str)
                 payload_dict["isar_id"] = isar_id
                 payload_dict["robot_name"] = robot_name
-                payload_dict["timestamp"] = str(datetime.now(UTC))
+                payload_dict["timestamp"] = datetime.now(UTC).isoformat()
                 payload = json.dumps(payload_dict)
                 topic = self.topic
             except RobotTelemetryPoseException, RobotTelemetryNoUpdateException:
