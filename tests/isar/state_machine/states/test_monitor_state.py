@@ -1,9 +1,5 @@
 from collections import deque
-from http import HTTPStatus
-from uuid import uuid4
 
-import pytest
-from fastapi import HTTPException
 from pytest_mock import MockerFixture
 
 from isar.config.settings import settings
@@ -162,54 +158,6 @@ def test_state_machine_with_unsuccessful_mission_stop(
     wait_until(
         lambda: state_machine_thread.state_machine.transitions_list
         == expected_transitions
-    )
-
-
-def test_state_machine_with_unsuccessful_mission_stop_with_mission_id(
-    scheduling_utilities: SchedulingUtilities,
-    mocker: MockerFixture,
-    state_machine_thread: StateMachineThreadMock,
-    robot_service_thread: RobotServiceThreadMock,
-) -> None:
-    mocker.patch.object(settings, "ROBOT_API_BATTERY_POLL_INTERVAL", 0.01)
-    mocker.patch.object(settings, "FSM_SLEEP_TIME", 0.01)
-
-    mission: Mission = Mission(
-        id="id", name="Dummy misson", tasks=[StubTask.take_image()]
-    )
-
-    mocker.patch.object(
-        StubRobot, "mission_status", return_value=MissionStatus.InProgress
-    )
-    mocker.patch.object(
-        StubRobot, "stop", side_effect=_mock_robot_exception_with_message
-    )
-
-    settings.FSM_SLEEP_TIME = 0
-
-    state_machine_thread.start()
-    robot_service_thread.start()
-
-    wait_until(
-        lambda: States.AwaitNextMission
-        in state_machine_thread.state_machine.transitions_list,
-        timeout=10,
-    )
-
-    scheduling_utilities.start_mission(mission=mission)
-    wait_until(
-        lambda: state_machine_thread.state_machine.state_event.check() == States.Monitor
-    )
-    with pytest.raises(HTTPException) as exception_details:
-        scheduling_utilities.stop_mission(str(uuid4()))
-
-    assert exception_details.value.status_code == HTTPStatus.SERVICE_UNAVAILABLE.value
-    assert state_machine_thread.state_machine.transitions_list == deque(
-        [
-            States.UnknownStatus,
-            States.AwaitNextMission,
-            States.Monitor,
-        ]
     )
 
 

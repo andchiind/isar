@@ -5,7 +5,7 @@ import isar.state_machine.states.monitor as Monitor
 import isar.state_machine.states.offline as Offline
 import isar.state_machine.states.recharging as Recharging
 import isar.state_machine.states.returning_home as ReturningHome
-import isar.state_machine.states.stopping as Stopping
+import isar.state_machine.states.stopping_unknown_mission as StoppingUnknownMission
 import isar.state_machine.states.unknown_status as UnknownStatus
 from isar.models.events import EmptyMessage, Events
 from isar.state_machine.state import EventHandlerMapping, State, Transition
@@ -38,11 +38,9 @@ def Home(events: Events) -> State:
             event=events.api_requests.return_home.request,
             handler=lambda _: ReturningHome.transition_and_start_mission(True),
         ),
-        EventHandlerMapping[str](
+        EventHandlerMapping[EmptyMessage](
             event=events.api_requests.stop_mission.request,
-            handler=lambda mission_id: Stopping.transition_and_trigger_stop_and_respond_to_API(
-                mission_id
-            ),
+            handler=lambda _: StoppingUnknownMission.transition_and_respond_to_API(),
         ),
         EventHandlerMapping[RobotStatus](
             event=events.robot_service_events.robot_status_update,

@@ -47,16 +47,3 @@ def test_transition_from_paused_to_stopping_to_recharge(events: Events) -> None:
     assert current_state.name is States.StoppingGoToRecharge
     assert not events.api_requests.stop_mission.response.has_event()
     assert events.state_machine_events.stop_mission.has_event()
-
-
-def test_stop_request_with_wrong_id_in_paused(events: Events) -> None:
-    current_state = Paused(events, "test_id")
-
-    event_handler: EventHandlerMapping = current_state.get_event_handler_by_event(
-        events.api_requests.stop_mission.request
-    )
-
-    transition = event_handler.handler("wrong_test_id")
-
-    assert transition is None
-    assert events.api_requests.stop_mission.response.has_event()

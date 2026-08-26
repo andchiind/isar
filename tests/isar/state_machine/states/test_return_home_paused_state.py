@@ -1,6 +1,5 @@
 from isar.models.events import EmptyMessage, Events
 from isar.state_machine.state import EventHandlerMapping
-from isar.state_machine.states.paused import Paused
 from isar.state_machine.states.pausing_return_home import PausingReturnHome
 from isar.state_machine.states.return_home_paused import ReturnHomePaused
 from isar.state_machine.states_enum import States
@@ -52,16 +51,3 @@ def test_transition_from_paused_return_home_to_stopping_paused_return_home_missi
 
     assert events.api_requests.start_mission.response.has_event()
     assert current_state.name is States.StoppingPausedReturnHome
-
-
-def test_stop_request_with_wrong_id_in_paused(events: Events) -> None:
-    current_state = Paused(events, "mission_id")
-
-    event_handler: EventHandlerMapping = current_state.get_event_handler_by_event(
-        events.api_requests.stop_mission.request
-    )
-
-    transition = event_handler.handler("wrong_test_id")
-
-    assert transition is None
-    assert events.api_requests.stop_mission.response.has_event()
