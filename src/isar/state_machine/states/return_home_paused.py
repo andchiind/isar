@@ -50,7 +50,4 @@ def ReturnHomePaused(events: Events) -> State:
 
 
 def transition() -> Transition:
-    def _transition(events: Events) -> State:
-        return ReturnHomePaused(events)
-
-    return _transition
+    return ReturnHomePaused

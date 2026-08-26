@@ -43,7 +43,4 @@ def Offline(events: Events) -> State:
 
 
 def transition() -> Transition:
-    def _transition(events: Events) -> State:
-        return Offline(events)
-
-    return _transition
+    return Offline

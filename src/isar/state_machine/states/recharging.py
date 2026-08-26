@@ -38,7 +38,4 @@ def Recharging(events: Events) -> State:
 
 
 def transition() -> Transition:
-    def _transition(events: Events) -> State:
-        return Recharging(events)
-
-    return _transition
+    return Recharging
