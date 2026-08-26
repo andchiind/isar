@@ -12,7 +12,6 @@ from isar.apis.models.models import (
 from isar.apis.models.start_mission_definition import (
     MissionFormatError,
     StartMissionDefinition,
-    StopMissionDefinition,
     to_isar_mission,
 )
 from isar.config.settings import robot_settings
@@ -98,22 +97,12 @@ class SchedulingController:
         return resume_mission_response
 
     @tracer.start_as_current_span("stop_mission")
-    def stop_mission(
-        self,
-        mission_id: StopMissionDefinition = Body(
-            default=None,
-            embed=True,
-            title="Mission ID to stop",
-            description="The mission ID of the mission being stopped, in json format",
-        ),
-    ) -> ControlMissionResponse:
+    def stop_mission(self) -> ControlMissionResponse:
 
         self.logger.info("Received request to stop current mission")
 
         stop_mission_response: ControlMissionResponse = (
-            self.scheduling_utilities.stop_mission(
-                mission_id.mission_id if mission_id.mission_id else ""
-            )
+            self.scheduling_utilities.stop_mission()
         )
         return stop_mission_response
 

@@ -123,7 +123,7 @@ class APIRequests:
         self.start_mission: APIEvent[Mission, MissionStartResponse] = APIEvent(
             "start_mission"
         )
-        self.stop_mission: APIEvent[str, ControlMissionResponse] = APIEvent(
+        self.stop_mission: APIEvent[EmptyMessage, ControlMissionResponse] = APIEvent(
             "stop_mission"
         )
         self.pause_mission: APIEvent[EmptyMessage, ControlMissionResponse] = APIEvent(

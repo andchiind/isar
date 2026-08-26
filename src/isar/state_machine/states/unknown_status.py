@@ -2,7 +2,6 @@ import isar.state_machine.states.await_next_mission as AwaitNextMission
 import isar.state_machine.states.home as Home
 import isar.state_machine.states.maintenance as Maintenance
 import isar.state_machine.states.offline as Offline
-import isar.state_machine.states.stopping as Stopping
 import isar.state_machine.states.stopping_unknown_mission as StoppingUnknownMission
 from isar.models.events import EmptyMessage, Events
 from isar.state_machine.state import EventHandlerMapping, State, Transition
@@ -28,11 +27,9 @@ def UnknownStatus(events: Events) -> State:
         return None
 
     event_handlers: list[EventHandlerMapping] = [
-        EventHandlerMapping[str](
+        EventHandlerMapping[EmptyMessage](
             event=events.api_requests.stop_mission.request,
-            handler=lambda mission_id: Stopping.transition_and_trigger_stop_and_respond_to_API(
-                mission_id
-            ),
+            handler=lambda _: StoppingUnknownMission.transition_and_respond_to_API(),
         ),
         EventHandlerMapping[RobotStatus](
             event=events.robot_service_events.robot_status_update,

@@ -53,7 +53,7 @@ def test_state_machine_with_successful_mission_stop(
     wait_until(
         lambda: state_machine_thread.state_machine.state_event.check() == States.Monitor
     )
-    scheduling_utilities.stop_mission(mission_id=mission.id)
+    scheduling_utilities.stop_mission()
 
     expected_transitions = deque(
         [

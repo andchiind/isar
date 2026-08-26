@@ -4,7 +4,7 @@ import isar.state_machine.states.stopping as Stopping
 import isar.state_machine.states.stopping_due_to_maintenance as StoppingDueToMaintenance
 import isar.state_machine.states.stopping_go_to_lockdown as StoppingGoToLockdown
 import isar.state_machine.states.stopping_go_to_recharge as StoppingGoToRecharge
-from isar.apis.models.models import ControlMissionResponse, MissionStartResponse
+from isar.apis.models.models import MissionStartResponse
 from isar.models.events import EmptyMessage, Events
 from isar.state_machine.state import EventHandlerMapping, State, Transition
 from isar.state_machine.states_enum import States
@@ -33,19 +33,6 @@ def Monitor(events: Events, mission_id: str) -> State:
         )
         return AwaitNextMission.transition()
 
-    def _stop_mission_event_handler(
-        stop_mission_id: str,
-    ) -> Transition | None:
-        if mission_id == stop_mission_id or stop_mission_id == "":
-            return Stopping.transition_and_trigger_stop_and_respond_to_API(mission_id)
-        else:
-            events.api_requests.stop_mission.response.trigger_event(
-                ControlMissionResponse(
-                    success=False, failure_reason="Mission not found"
-                )
-            )
-            return None
-
     event_handlers: list[EventHandlerMapping] = [
         EventHandlerMapping[EmptyMessage](
             event=events.robot_service_events.mission_started_successfully,
@@ -53,9 +40,11 @@ def Monitor(events: Events, mission_id: str) -> State:
                 mission_id, MissionStatus.InProgress, None
             ),
         ),
-        EventHandlerMapping[str](
+        EventHandlerMapping[EmptyMessage](
             event=events.api_requests.stop_mission.request,
-            handler=_stop_mission_event_handler,
+            handler=lambda _: Stopping.transition_and_trigger_stop_and_respond_to_API(
+                mission_id
+            ),
         ),
         EventHandlerMapping[EmptyMessage](
             event=events.api_requests.pause_mission.request,

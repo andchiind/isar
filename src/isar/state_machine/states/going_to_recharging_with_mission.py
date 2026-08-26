@@ -24,20 +24,12 @@ def GoingToRechargingWithMission(events: Events, mission: AbortedMission) -> Sta
         return InterventionNeeded.transition("Return home to recharge failed")
 
     def _stop_mission_event_handler(
-        stop_mission_id: str,
+        _: EmptyMessage,
     ) -> Transition | None:
-        if mission.id == stop_mission_id or stop_mission_id == "":
-            events.api_requests.stop_mission.response.trigger_event(
-                ControlMissionResponse(success=True)
-            )
-            return GoingToRecharging.transition_to_existing_mission()
-        else:
-            events.api_requests.stop_mission.response.trigger_event(
-                ControlMissionResponse(
-                    success=False, failure_reason="Mission not found"
-                )
-            )
-            return None
+        events.api_requests.stop_mission.response.trigger_event(
+            ControlMissionResponse(success=True)
+        )
+        return GoingToRecharging.transition_to_existing_mission()
 
     event_handlers: list[EventHandlerMapping] = [
         EventHandlerMapping[ErrorMessage](
@@ -52,7 +44,7 @@ def GoingToRechargingWithMission(events: Events, mission: AbortedMission) -> Sta
             event=events.api_requests.send_to_lockdown.request,
             handler=lambda _: GoingToLockdown.transition_to_existing_mission_and_report_to_api(),
         ),
-        EventHandlerMapping[str](
+        EventHandlerMapping[EmptyMessage](
             event=events.api_requests.stop_mission.request,
             handler=_stop_mission_event_handler,
         ),

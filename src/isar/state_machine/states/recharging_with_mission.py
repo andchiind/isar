@@ -13,20 +13,12 @@ from robot_interface.models.mission.status import RobotStatus
 def RechargingWithMission(events: Events, mission: AbortedMission) -> State:
 
     def _stop_mission_event_handler(
-        stop_mission_id: str,
+        _: EmptyMessage,
     ) -> Transition | None:
-        if mission.id == stop_mission_id or stop_mission_id == "":
-            events.api_requests.stop_mission.response.trigger_event(
-                ControlMissionResponse(success=True)
-            )
-            return Recharging.transition()
-        else:
-            events.api_requests.stop_mission.response.trigger_event(
-                ControlMissionResponse(
-                    success=False, failure_reason="Mission not found"
-                )
-            )
-            return None
+        events.api_requests.stop_mission.response.trigger_event(
+            ControlMissionResponse(success=True)
+        )
+        return Recharging.transition()
 
     event_handlers: list[EventHandlerMapping] = [
         EventHandlerMapping[EmptyMessage](
@@ -49,7 +41,7 @@ def RechargingWithMission(events: Events, mission: AbortedMission) -> State:
             event=events.api_requests.set_maintenance_mode.request,
             handler=lambda _: Maintenance.transition_and_reply_to_API(),
         ),
-        EventHandlerMapping[str](
+        EventHandlerMapping[EmptyMessage](
             event=events.api_requests.stop_mission.request,
             handler=_stop_mission_event_handler,
         ),

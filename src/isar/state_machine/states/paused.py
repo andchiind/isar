@@ -3,7 +3,6 @@ import isar.state_machine.states.stopping_due_to_maintenance as StoppingDueToMai
 import isar.state_machine.states.stopping_go_to_lockdown as StoppingGoToLockdown
 import isar.state_machine.states.stopping_go_to_recharge as StoppingGoToRecharge
 import isar.state_machine.states.stopping_paused_mission as StoppingPausedMission
-from isar.apis.models.models import ControlMissionResponse
 from isar.models.events import EmptyMessage, Events
 from isar.state_machine.state import EventHandlerMapping, State, Transition
 from isar.state_machine.states_enum import States
@@ -11,23 +10,12 @@ from isar.state_machine.states_enum import States
 
 def Paused(events: Events, mission_id: str) -> State:
 
-    def _stop_mission_event_handler(
-        stop_mission_id: str,
-    ) -> Transition | None:
-        if mission_id == stop_mission_id or stop_mission_id == "":
-            return StoppingPausedMission.transition_and_trigger_stop(mission_id, True)
-        else:
-            events.api_requests.stop_mission.response.trigger_event(
-                ControlMissionResponse(
-                    success=False, failure_reason="Mission not found"
-                )
-            )
-            return None
-
     event_handlers: list[EventHandlerMapping] = [
-        EventHandlerMapping[str](
+        EventHandlerMapping[EmptyMessage](
             event=events.api_requests.stop_mission.request,
-            handler=_stop_mission_event_handler,
+            handler=lambda _: StoppingPausedMission.transition_and_trigger_stop(
+                mission_id, True
+            ),
         ),
         EventHandlerMapping[EmptyMessage](
             event=events.api_requests.resume_mission.request,
