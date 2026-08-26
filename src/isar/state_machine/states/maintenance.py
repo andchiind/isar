@@ -41,7 +41,4 @@ def transition_and_reply_to_API() -> Transition:
 
 
 def transition_without_replying_to_API() -> Transition:
-    def _transition(events: Events) -> State:
-        return Maintenance(events)
-
-    return _transition
+    return Maintenance

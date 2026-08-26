@@ -51,7 +51,4 @@ def UnknownStatus(events: Events) -> State:
 
 
 def transition() -> Transition:
-    def _transition(events: Events) -> State:
-        return UnknownStatus(events)
-
-    return _transition
+    return UnknownStatus

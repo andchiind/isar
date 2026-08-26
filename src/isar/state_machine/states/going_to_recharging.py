@@ -45,7 +45,4 @@ def transition_and_start_return_home() -> Transition:
 
 
 def transition_to_existing_mission() -> Transition:
-    def _transition(events: Events) -> State:
-        return GoingToRecharging(events)
-
-    return _transition
+    return GoingToRecharging

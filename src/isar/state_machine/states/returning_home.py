@@ -85,7 +85,4 @@ def transition_and_start_mission(
 
 
 def transition_to_existing_mission() -> Transition:
-    def _transition(events: Events) -> State:
-        return ReturningHome(events)
-
-    return _transition
+    return ReturningHome

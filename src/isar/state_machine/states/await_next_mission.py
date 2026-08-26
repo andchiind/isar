@@ -64,7 +64,4 @@ def AwaitNextMission(events: Events) -> State:
 
 
 def transition() -> Transition:
-    def _transition(events: Events) -> State:
-        return AwaitNextMission(events)
-
-    return _transition
+    return AwaitNextMission
