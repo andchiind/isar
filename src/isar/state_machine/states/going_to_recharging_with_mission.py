@@ -62,6 +62,7 @@ def transition_and_start_return_home(
     def _transition(events: Events) -> State:
         events.robot_service_events.mission_failed.clear_event()
         events.robot_service_events.mission_succeeded.clear_event()
+        events.robot_service_events.mission_started_successfully.clear_event()
 
         events.state_machine_events.start_mission.trigger_event(ReturnHomeMission())
         return GoingToRechargingWithMission(events, mission=mission)
