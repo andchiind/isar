@@ -171,9 +171,11 @@ class StubRobotRobotStatusBusyIfNotHomeOrUnknownStatus(StubRobot):
         self.return_home_mission_just_finished_successfully = False
 
     def task_status(self, task_id: str) -> TaskStatus:
-        if self.mission._is_return_to_home_mission():
-            if self.task_status_return_value == TaskStatus.Successful:
-                self.return_home_mission_just_finished_successfully = True
+        if (
+            self.mission._is_return_to_home_mission()
+            and self.task_status_return_value == TaskStatus.Successful
+        ):
+            self.return_home_mission_just_finished_successfully = True
         return self.task_status_return_value
 
     def robot_status(self) -> RobotStatus:
