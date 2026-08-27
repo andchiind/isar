@@ -17,9 +17,7 @@ class Mission(BaseModel):
     def _is_return_to_home_mission(self) -> bool:
         if len(self.tasks) != 1:
             return False
-        if self.tasks[0].type != TaskTypes.ReturnToHome:
-            return False
-        return True
+        return self.tasks[0].type == TaskTypes.ReturnToHome
 
     def _get_unfinished_tasks(self) -> list[TASKS]:
         return list(

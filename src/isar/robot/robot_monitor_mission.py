@@ -26,14 +26,12 @@ def get_next_task(task_iterator: Iterator[TASKS]) -> TASKS | None:
 
 
 def is_finished(task_status: TaskStatus) -> bool:
-    if (
+    return (
         task_status == TaskStatus.Successful
         or task_status == TaskStatus.PartiallySuccessful
         or task_status == TaskStatus.Cancelled
         or task_status == TaskStatus.Failed
-    ):
-        return True
-    return False
+    )
 
 
 def should_upload_inspections(task: TASKS) -> bool:
