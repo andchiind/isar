@@ -53,7 +53,7 @@ flowchart TD
     Home --> Offline
     Home --> Recharging
     Home --> ReturningHome
-    Home --> Stopping
+    Home --> StoppingUnknownMission
     Home --> UnknownStatus
     ReturningHome --> GoingToLockdown
     ReturningHome --> GoingToRecharging
@@ -84,7 +84,7 @@ flowchart TD
     AwaitNextMission --> Maintenance
     AwaitNextMission --> Monitor
     AwaitNextMission --> ReturningHome
-    AwaitNextMission --> Stopping
+    AwaitNextMission --> StoppingUnknownMission
     Stopping --> AwaitNextMission
     Stopping --> Monitor
     GoingToLockdown --> InterventionNeeded
@@ -113,7 +113,6 @@ flowchart TD
     UnknownStatus --> Home
     UnknownStatus --> Maintenance
     UnknownStatus --> Offline
-    UnknownStatus --> Stopping
     UnknownStatus --> StoppingUnknownMission
     GoingToRechargingWithMission --> GoingToLockdown
     GoingToRechargingWithMission --> GoingToRecharging
